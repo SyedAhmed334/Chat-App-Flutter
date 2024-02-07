@@ -53,7 +53,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return FirebaseAuth.instance.signInWithCredential(facebookAuthCredential);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 25.0),
                 child: InkWell(
                   onTap: () async{
-                    signInWithFacebook().then((value){
+                    await signInWithFacebook().then((value){
                       Navigator.pushNamed(context, RouteName.dashBoardScreen);
                       Utils.toastMessage('Sign in successful!');
                     });
