@@ -5,6 +5,7 @@ class UserModel with ChangeNotifier {
   List<Map<String, String>> _filteredUsers = [];
 
   List<Map<String, String>> get filteredUsers => _filteredUsers;
+  List<Map<String, String>> get users => _users;
 
   void getUsers(List<Map<String, String>> users) {
     _users = users;
