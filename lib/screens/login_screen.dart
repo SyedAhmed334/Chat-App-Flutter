@@ -3,6 +3,7 @@ import 'package:chat_app_flutter/components/round_button.dart';
 import 'package:chat_app_flutter/constants/route_name.dart';
 import 'package:chat_app_flutter/models/login_model.dart';
 import 'package:chat_app_flutter/utilities/toast_message.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
@@ -156,7 +157,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: InkWell(
                   onTap: () async{
                     try {
-                      await signInWithGoogle().then((value) {
+                      await signInWithGoogle().then((value) async{
+                        if (value.user != null) {
+                          // Fetch user data
+                          String? displayName = value.user!.displayName;
+                          String? email = value.user!.email;
+                          var documentSnapshot = await FirebaseFirestore.instance.collection('Users').doc(value.user!.uid).get();
+
+                          // Upload user data to Firestore
+                          if(!documentSnapshot.exists) {
+                            await FirebaseFirestore.instance.collection('Users')
+                                .doc(value.user!.uid)
+                                .set({
+                              'username': displayName,
+                              'email': email,
+                            });
+                          }
+                        }
+
                         Navigator.pushNamed(context, RouteName.dashBoardScreen);
                         Utils.toastMessage('Sign In Successful!');
                       });

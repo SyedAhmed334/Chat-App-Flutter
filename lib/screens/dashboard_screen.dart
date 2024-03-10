@@ -27,7 +27,6 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black54,
       appBar: AppBar(
         elevation: 5,
         automaticallyImplyLeading: false,
@@ -36,13 +35,16 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
           style: TextStyle(color: Colors.white),
         ),
         actions: [
-          IconButton(onPressed: () => {}, icon: Icon(CupertinoIcons.profile_circled, color: Colors.purpleAccent, size: 30),),
+          IconButton(onPressed: () {
+            Navigator.pushNamed(context, RouteName.profileScreen);
+          }, icon: Icon(CupertinoIcons.profile_circled, color: Colors.purpleAccent, size: 30),),
           IconButton(
             onPressed: () async {
               User? user = auth.currentUser;
               try {
                 if (user?.providerData[0].providerId == 'google.com') {
                   // Sign out from Google
+                  await FirebaseAuth.instance.signOut();
                   await _googleSignIn.signOut().then((value) {
                     Navigator.pushNamed(context, RouteName.loginScreen);
                     Utils.toastMessage('Google user signed out!');
@@ -151,14 +153,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                     final username = provider
                                         .filteredUsers[index]['username'];
                                     return ListTile(
-                                      leading: ClipRRect(
-                                        borderRadius: BorderRadius.circular(50),
-                                        child: CircleAvatar(
-                                          radius: 25,
-                                          child: Image.asset(
-                                              'assets/images/profile.jpg'),
-                                        ),
-                                      ),
+                                      leading: Icon(Icons.account_circle,size: 50,),
                                       title: Text(username.toString()),
                                       subtitle: Text(email.toString()),
                                     );

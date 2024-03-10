@@ -1,0 +1,186 @@
+import 'package:chat_app_flutter/components/round_button.dart';
+import 'package:chat_app_flutter/constants/colors.dart';
+import 'package:chat_app_flutter/models/user_data_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
+
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final fireStore = FirebaseFirestore.instance.collection('Users');
+  final auth = FirebaseAuth.instance;
+  final userNameController = TextEditingController();
+
+  void getUserName() {
+    final map = Provider.of<UserDataProvider>(context, listen: false).userData;
+    userNameController.text = map['username'];
+  }
+
+  Future<void> fetchData() async {
+    final provider = Provider.of<UserDataProvider>(context, listen: false);
+    provider.fetchData().then((value) async {
+      getUserName();
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    fetchData();
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text(
+          'Profile',
+          style: TextStyle(color: AppColors.whiteColor),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 80.0),
+        child: SingleChildScrollView(
+          child: Consumer<UserDataProvider>(
+            builder: (context, provider, child) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Column(
+                    children: [
+                      Icon(
+                        Icons.account_circle,
+                        size: 100,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      Text(
+                        userNameController.text,
+                        style: Theme.of(context)
+                            .textTheme
+                            .displayMedium!
+                            .copyWith(color: Colors.white, fontSize: 22),
+                      ),
+                      Text(
+                        auth.currentUser!.email.toString(),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium!
+                            .copyWith(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child: Card(
+                      color: Colors.white,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(40),
+                          topRight: Radius.circular(40),
+                          bottomLeft: Radius.circular(40),
+                          bottomRight: Radius.circular(40),
+                        ),
+                      ),
+                      child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12.0, horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              TextFormField(
+                                enabled: provider.isEditable,
+                                controller: userNameController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Name',
+                                  labelStyle: TextStyle(color: Colors.black),
+                                  prefixIcon: Icon(
+                                    Icons.person,
+                                    size: 25,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 50,
+                              ),
+                              provider.isEditable
+                                  ? Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        ElevatedButton(
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.black),
+                                          ),
+                                          onPressed: () {
+                                            provider.isNotEditable();
+                                            provider.setData(
+                                                userNameController.text);
+                                          },
+                                          child: const Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 5),
+                                            child: Text(
+                                              'Save',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 5,
+                                        ),
+                                        ElevatedButton(
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.black),
+                                          ),
+                                          onPressed: () {
+                                            provider.isNotEditable();
+                                            getUserName();
+                                          },
+                                          child: const Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 5),
+                                            child: Text(
+                                              'Cancel',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : RoundButton(
+                                      title: 'Update Info',
+                                      onTap: () {
+                                        provider.isNotEditable();
+                                      }),
+                            ],
+                          )),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}

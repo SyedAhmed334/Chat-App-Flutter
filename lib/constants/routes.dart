@@ -1,3 +1,4 @@
+import '../screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../screens/dashboard_screen.dart';
@@ -21,10 +22,15 @@ import 'route_name.dart';
 
        case RouteName.signUpScreen:
          return MaterialPageRoute(builder: (_) => const SignUpScreen());
+
       case RouteName.dashBoardScreen:
          return MaterialPageRoute(builder: (_) => const DashBoardScreen());
+
       case RouteName.forgotPasswordScreen:
          return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
+
+      case RouteName.profileScreen:
+        return MaterialPageRoute(builder: (_) => const ProfileScreen());
 
       default:
         return MaterialPageRoute(builder: (_) {
