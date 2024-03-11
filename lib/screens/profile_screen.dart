@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:chat_app_flutter/components/round_button.dart';
 import 'package:chat_app_flutter/constants/colors.dart';
 import 'package:chat_app_flutter/models/user_data_model.dart';
+import 'package:chat_app_flutter/utilities/toast_message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -18,6 +22,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final fireStore = FirebaseFirestore.instance.collection('Users');
   final auth = FirebaseAuth.instance;
   final userNameController = TextEditingController();
+  File? _image;
+  final picker = ImagePicker();
 
   void getUserName() {
     final map = Provider.of<UserDataProvider>(context, listen: false).userData;
@@ -30,6 +36,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
       getUserName();
     });
   }
+
+  Future getImage() async{
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      _image = File(pickedFile.path);
+    } else {
+      Utils.toastMessage('No image selected');
+    }
+  }
+
+  Future<void> uploadImage () async{
+    Reference storageReference = FirebaseStorage.instance.ref().child('images/profile-picture.png');
+    UploadTask uploadTask = storageReference.putFile(_image!);
+    await uploadTask.whenComplete(() async {
+      String imageUrl = await storageReference.getDownloadURL();
+      fireStore.doc(auth.currentUser!.uid).update({
+        'imageUrl' : imageUrl,
+      });
+      Utils.toastMessage('Image uploaded');
+    });
+
+  }
+  Widget _buildProfileImage() {
+    if (_image != null) {
+      return CircleAvatar(radius: 50,child: ClipRRect(borderRadius: BorderRadius.circular(100),child: Image.file(_image!),),);
+    } else {
+      final user = Provider.of<UserDataProvider>(context).userData;
+      final imageUrl = user['imageUrl'];
+      if (imageUrl != null) {
+        return CircleAvatar(radius: 50,child: ClipRRect(borderRadius: BorderRadius.circular(100),child: Image.network(imageUrl,)));
+      } else {
+        return Icon(
+          Icons.account_circle,
+          size: 100,
+          color: Colors.grey.shade500,
+        );
+      }
+    }
+  }
+
 
   @override
   void initState() {
@@ -57,15 +103,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Column(
+                    Column(
                     children: [
-                      Icon(
-                        Icons.account_circle,
-                        size: 100,
-                        color: Colors.grey.shade500,
-                      ),
+                      _buildProfileImage(),
+                      InkWell(onTap: (){
+                        getImage().then((value) {
+                          uploadImage();
+                        });
+                      },child: Text('Edit', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),),
                       const SizedBox(
-                        height: 20,
+                        height: 15,
                       ),
                       Text(
                         userNameController.text,

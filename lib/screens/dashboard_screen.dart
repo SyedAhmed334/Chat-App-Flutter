@@ -9,6 +9,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 import '../constants/colors.dart';
+import '../models/user_data_model.dart';
 import '../utilities/toast_message.dart';
 
 class DashBoardScreen extends StatefulWidget {
@@ -23,6 +24,20 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
   final searchController = TextEditingController();
   final fireStore = FirebaseFirestore.instance.collection('Users');
+
+  Widget _buildProfileImage() {
+      final user = Provider.of<UserDataProvider>(context).userData;
+      final imageUrl = user['imageUrl'];
+      if (imageUrl != null ) {
+        return CircleAvatar(radius: 50,child: ClipRRect(borderRadius: BorderRadius.circular(100),child: Image.network(imageUrl,)));
+      } else {
+        return Icon(
+          Icons.account_circle,
+          size: 100,
+          color: Colors.grey.shade500,
+        );
+      }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +168,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                     final username = provider
                                         .filteredUsers[index]['username'];
                                     return ListTile(
-                                      leading: Icon(Icons.account_circle,size: 50,),
+                                      leading: _buildProfileImage(),
                                       title: Text(username.toString()),
                                       subtitle: Text(email.toString()),
                                     );

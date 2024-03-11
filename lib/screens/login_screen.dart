@@ -171,6 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 .set({
                               'username': displayName,
                               'email': email,
+                              'imageUrl': null,
                             });
                           }
                         }
