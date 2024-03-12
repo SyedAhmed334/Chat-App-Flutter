@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -25,9 +26,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   File? _image;
   final picker = ImagePicker();
 
-  void getUserName() {
+  void getUserName() async{
     final map = Provider.of<UserDataProvider>(context, listen: false).userData;
-    userNameController.text = map['username'];
+    userNameController.text = map!['username'];
   }
 
   Future<void> fetchData() async {
@@ -37,55 +38,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  Future getImage() async{
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      _image = File(pickedFile.path);
-    } else {
-      Utils.toastMessage('No image selected');
+  Future<void> getImage() async {
+    try {
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      } else {
+        Utils.toastMessage('No image selected');
+      }
+    } catch (e) {
+      Utils.toastMessage('Error selecting image: $e');
     }
   }
 
-  Future<void> uploadImage () async{
-    Reference storageReference = FirebaseStorage.instance.ref().child('images/profile-picture.png');
-    UploadTask uploadTask = storageReference.putFile(_image!);
-    await uploadTask.whenComplete(() async {
-      String imageUrl = await storageReference.getDownloadURL();
-      fireStore.doc(auth.currentUser!.uid).update({
-        'imageUrl' : imageUrl,
-      });
-      Utils.toastMessage('Image uploaded');
-    });
+  Future<void> uploadImage() async {
+    try {
+      if (_image == null) {
+        Utils.toastMessage('No image selected');
+        return ;
+      }
 
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      Reference storageReference =
+      FirebaseStorage.instance.ref().child('images/$timestamp');
+      UploadTask uploadTask = storageReference.putFile(_image!);
+      await uploadTask.whenComplete(() async {
+        String imageUrl = await storageReference.getDownloadURL();
+        fireStore.doc(auth.currentUser!.uid).update({
+          'imageUrl': imageUrl,
+        });
+        Utils.toastMessage('Image uploaded');
+        fetchData();
+      });
+    } catch (e) {
+      Utils.toastMessage('Error uploading image: $e');
+    }
   }
+
   Widget _buildProfileImage() {
     if (_image != null) {
-      return CircleAvatar(radius: 50,child: ClipRRect(borderRadius: BorderRadius.circular(100),child: Image.file(_image!),),);
-    } else {
-      final user = Provider.of<UserDataProvider>(context).userData;
-      final imageUrl = user['imageUrl'];
-      if (imageUrl != null) {
-        return CircleAvatar(radius: 50,child: ClipRRect(borderRadius: BorderRadius.circular(100),child: Image.network(imageUrl,)));
-      } else {
-        return Icon(
-          Icons.account_circle,
-          size: 100,
-          color: Colors.grey.shade500,
-        );
-      }
+      return CircleAvatar(
+        radius: 50,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(100),
+          child: Image.file(_image!),
+        ),
+      );
     }
-  }
+    else {
+      final user = Provider
+          .of<UserDataProvider>(context, listen: false)
+          .userData;
+       if(user!=null) {
+         final imageUrl = user!['imageUrl'];
+         if (imageUrl != null) {
+           return ClipRRect(
+             borderRadius: BorderRadius.circular(100),
+             child: Image.network(
+                 imageUrl,
+                 fit: BoxFit.cover,
+                 height: 150,
+                 width: 150,
+                 errorBuilder: (context, error, stackTrace) =>
+                 const Icon(
+                   Icons.account_circle,
+                   size: 100,
+                   color: Colors.grey,
+                 ),
+                 loadingBuilder:
+                     (context, child, loadingProgress) {
+                   if (loadingProgress == null) {
+                     return child;
+                   }
+                   return SizedBox(
+                     width: 100,
+                     height: 100,
+                     child: Center(
+                       child: CircularProgressIndicator(
+                         color: Colors.grey,
+                         value: loadingProgress
+                             .expectedTotalBytes !=
+                             null
+                             ? loadingProgress
+                             .cumulativeBytesLoaded /
+                             loadingProgress
+                                 .expectedTotalBytes!
+                             : null,
+                       ),
+                     ),
+                   );
+                 }
+             ),
+           );
+         } else {
+           return Icon(
+             Icons.account_circle,
+             size: 100,
+             color: Colors.grey.shade500,
+           );
+         }
+       }else{
+         return CircularProgressIndicator();
+       }
 
+      }
+
+  }
 
   @override
   void initState() {
     // TODO: implement initState
+    fetchData();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    fetchData();
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -103,14 +171,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                    Column(
+                  Column(
                     children: [
                       _buildProfileImage(),
-                      InkWell(onTap: (){
-                        getImage().then((value) {
-                          uploadImage();
-                        });
-                      },child: Text('Edit', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),),
+                      InkWell(
+                        onTap: () {
+                          getImage().then((value) {
+                            uploadImage();
+                          });
+                        },
+                        child: Text('Edit',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.bold)),
+                      ),
                       const SizedBox(
                         height: 15,
                       ),

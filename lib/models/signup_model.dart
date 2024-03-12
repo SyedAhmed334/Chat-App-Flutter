@@ -26,7 +26,7 @@ class SignUpModel with ChangeNotifier {
       firestore.doc(auth.currentUser!.uid).set({
         'username': userName,
         'email': email,
-        'imageUrl': null,
+        'imageUrl': "",
       }).then((value) {
         setLoading(false);
         Utils.toastMessage('User has been created!');

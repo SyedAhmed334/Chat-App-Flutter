@@ -25,20 +25,6 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   final searchController = TextEditingController();
   final fireStore = FirebaseFirestore.instance.collection('Users');
 
-  Widget _buildProfileImage() {
-      final user = Provider.of<UserDataProvider>(context).userData;
-      final imageUrl = user['imageUrl'];
-      if (imageUrl != null ) {
-        return CircleAvatar(radius: 50,child: ClipRRect(borderRadius: BorderRadius.circular(100),child: Image.network(imageUrl,)));
-      } else {
-        return Icon(
-          Icons.account_circle,
-          size: 100,
-          color: Colors.grey.shade500,
-        );
-      }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,9 +36,13 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
           style: TextStyle(color: Colors.white),
         ),
         actions: [
-          IconButton(onPressed: () {
-            Navigator.pushNamed(context, RouteName.profileScreen);
-          }, icon: Icon(CupertinoIcons.profile_circled, color: Colors.purpleAccent, size: 30),),
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, RouteName.profileScreen);
+            },
+            icon: Icon(CupertinoIcons.profile_circled,
+                color: Colors.purpleAccent, size: 30),
+          ),
           IconButton(
             onPressed: () async {
               User? user = auth.currentUser;
@@ -71,7 +61,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   });
                 }
               } catch (e) {
-                Utils.toastMessage(e.toString());
+               // Utils.toastMessage(e.toString());
               }
             },
             icon: const Icon(
@@ -91,35 +81,35 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
                   child: TextFormField(
                     controller: searchController,
                     onChanged: (value) {
-                      if(searchController.text.isEmpty)
-                      {
+                      if (searchController.text.isEmpty) {
                         provider.users;
                       }
                       provider.filterUsers(searchController.text);
-
                     },
                     decoration: InputDecoration(
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                        labelText: 'Search',
-                        prefixIcon: IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () {},
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 5, horizontal: 10),
+                      labelText: 'Search',
+                      prefixIcon: IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () {},
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(35),
+                        borderSide: const BorderSide(
+                          color: AppColors.textFieldDefaultFocus,
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(35),
-                          borderSide: const BorderSide(
-                            color: AppColors.textFieldDefaultFocus,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(35),
-                          borderSide: const BorderSide(color: Colors.white24),
-                        ),),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(35),
+                        borderSide: const BorderSide(color: Colors.white24),
+                      ),
+                    ),
                   ),
                 ),
                 Expanded(
@@ -153,12 +143,17 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                   final email = e.data()['email'] as String;
                                   final userName =
                                       e.data()['username'] as String;
-                                  return {'username': userName, 'email': email};
+                                  final imageUrl =
+                                      e.data()['imageUrl'] as String;
+                                  return {
+                                    'username': userName,
+                                    'email': email,
+                                    'imageUrl': imageUrl
+                                  };
                                 }).toList();
-                                if(provider.users.isEmpty)
-                                  {
-                                    provider.getUsers(users);
-                                  }
+                                if (provider.users.isEmpty) {
+                                  provider.getUsers(users);
+                                }
                                 provider.filteredUsers;
                                 return ListView.builder(
                                   itemCount: provider.filteredUsers.length,
@@ -167,10 +162,51 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                         provider.filteredUsers[index]['email'];
                                     final username = provider
                                         .filteredUsers[index]['username'];
+                                    dynamic imageUrl =
+                                        provider.filteredUsers[index]
+                                            ['imageUrl'] as String;
                                     return ListTile(
-                                      leading: _buildProfileImage(),
-                                      title: Text(username.toString()),
-                                      subtitle: Text(email.toString()),
+                                      leading: imageUrl != null
+                                          ? ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(30),
+                                              child:  Image.network(
+                                                imageUrl,
+                                                fit: BoxFit.cover,
+                                                height: 50,
+                                                width: 50,
+                                                  errorBuilder: (context, error, stackTrace) => const Icon(
+                                                    Icons.account_circle,
+                                                    size: 60,
+                                                    color: Colors.grey,
+                                                  ),
+                                                  loadingBuilder:
+                                                      (context, child, loadingProgress) {
+                                                    if (loadingProgress == null) {
+                                                      return child;
+                                                    }
+                                                    return SizedBox(
+                                                      width: 50,
+                                                      height: 50,
+                                                      child: Center(
+                                                        child: CircularProgressIndicator(
+                                                          color: Colors.grey,
+                                                          value: loadingProgress
+                                                              .expectedTotalBytes !=
+                                                              null
+                                                              ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                              loadingProgress
+                                                                  .expectedTotalBytes!
+                                                              : null,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                              ),
+                                            ) : Icon(Icons.account_circle, size: 50, color: Colors.grey),
+                                      title: Text(username.toString(),),
+                                      subtitle: Text(email.toString(),),
                                     );
                                   },
                                 );
