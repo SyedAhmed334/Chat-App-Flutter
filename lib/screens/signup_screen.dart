@@ -85,8 +85,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     return RoundButton(
                         title: 'Signup',
                         loading: value.loading,
-                        onTap: () async{
-                         await value.signUp(context, userNameController.text,
+                        onTap: () async {
+                          await value.signUp(context, userNameController.text,
                               emailController.text, passwordController.text);
                         });
                   },
@@ -98,7 +98,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Already have an account? ', style: TextStyle(fontSize: 16),),
+                  const Text(
+                    'Already have an account? ',
+                    style: TextStyle(fontSize: 16),
+                  ),
                   InkWell(
                     onTap: () {
                       Navigator.pushNamed(context, RouteName.loginScreen);

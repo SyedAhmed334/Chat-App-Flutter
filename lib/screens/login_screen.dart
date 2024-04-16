@@ -23,32 +23,33 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<UserCredential> signInWithGoogle() async {
     // Trigger the authentication flow
-    try{
+    try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
       // Obtain the auth details from the request
-      final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+      final GoogleSignInAuthentication? googleAuth =
+          await googleUser?.authentication;
 
       // Create a new credential
       final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth?.accessToken,
-          idToken: googleAuth?.idToken,
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
       );
       return await FirebaseAuth.instance.signInWithCredential(credential);
-    }
-    catch(e){
+    } catch (e) {
       Utils.toastMessage(e.toString());
       return Future.error(e.toString());
-      print('Hello');
-      }
+    }
     // Once signed in, return the UserCredential
   }
+
   Future<UserCredential> signInWithFacebook() async {
     // Trigger the sign-in flow
     final LoginResult loginResult = await FacebookAuth.instance.login();
 
     // Create a credential from the access token
-    final OAuthCredential facebookAuthCredential = FacebookAuthProvider.credential(loginResult.accessToken!.token);
+    final OAuthCredential facebookAuthCredential =
+        FacebookAuthProvider.credential(loginResult.accessToken!.token);
 
     // Once signed in, return the UserCredential
     return FirebaseAuth.instance.signInWithCredential(facebookAuthCredential);
@@ -65,7 +66,9 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: 40,),
+              const SizedBox(
+                height: 40,
+              ),
               Text(
                 'Login',
                 style: Theme.of(context).textTheme.displayLarge,
@@ -101,8 +104,9 @@ class _LoginScreenState extends State<LoginScreen> {
               Align(
                   alignment: Alignment.centerRight,
                   child: InkWell(
-                    onTap: (){
-                      Navigator.pushNamed(context, RouteName.forgotPasswordScreen);
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, RouteName.forgotPasswordScreen);
                     },
                     child: Text(
                       'Forgot Password?',
@@ -155,18 +159,23 @@ class _LoginScreenState extends State<LoginScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25.0),
                 child: InkWell(
-                  onTap: () async{
+                  onTap: () async {
                     try {
-                      await signInWithGoogle().then((value) async{
+                      await signInWithGoogle().then((value) async {
                         if (value.user != null) {
                           // Fetch user data
                           String? displayName = value.user!.displayName;
                           String? email = value.user!.email;
-                          var documentSnapshot = await FirebaseFirestore.instance.collection('Users').doc(value.user!.uid).get();
+                          var documentSnapshot = await FirebaseFirestore
+                              .instance
+                              .collection('Users')
+                              .doc(value.user!.uid)
+                              .get();
 
                           // Upload user data to Firestore
-                          if(!documentSnapshot.exists) {
-                            await FirebaseFirestore.instance.collection('Users')
+                          if (!documentSnapshot.exists) {
+                            await FirebaseFirestore.instance
+                                .collection('Users')
                                 .doc(value.user!.uid)
                                 .set({
                               'username': displayName,
@@ -176,11 +185,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         }
 
+                        // ignore: use_build_context_synchronously
                         Navigator.pushNamed(context, RouteName.dashBoardScreen);
                         Utils.toastMessage('Sign In Successful!');
                       });
-                    }
-                    catch(e){
+                    } catch (e) {
                       debugPrint(e.toString());
                     }
                   },
@@ -202,8 +211,8 @@ class _LoginScreenState extends State<LoginScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25.0),
                 child: InkWell(
-                  onTap: () async{
-                    await signInWithFacebook().then((value){
+                  onTap: () async {
+                    await signInWithFacebook().then((value) {
                       Navigator.pushNamed(context, RouteName.dashBoardScreen);
                       Utils.toastMessage('Sign in successful!');
                     });
@@ -213,8 +222,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ListTile(
                       leading: CircleAvatar(
                           child: Image(
-                            image: AssetImage('assets/images/facebook.png'),
-                          )),
+                        image: AssetImage('assets/images/facebook.png'),
+                      )),
                       title: Text('Sign in with Facebook'),
                     ),
                   ),

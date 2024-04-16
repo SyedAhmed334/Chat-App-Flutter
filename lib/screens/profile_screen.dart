@@ -26,7 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   File? _image;
   final picker = ImagePicker();
 
-  void getUserName() async{
+  void getUserName() async {
     final map = Provider.of<UserDataProvider>(context, listen: false).userData;
     userNameController.text = map!['username'];
   }
@@ -55,12 +55,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       if (_image == null) {
         Utils.toastMessage('No image selected');
-        return ;
+        return;
       }
 
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       Reference storageReference =
-      FirebaseStorage.instance.ref().child('images/$timestamp');
+          FirebaseStorage.instance.ref().child('images/$timestamp');
       UploadTask uploadTask = storageReference.putFile(_image!);
       await uploadTask.whenComplete(() async {
         String imageUrl = await storageReference.getDownloadURL();
@@ -84,70 +84,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Image.file(_image!),
         ),
       );
-    }
-    else {
-      final user = Provider
-          .of<UserDataProvider>(context, listen: false)
-          .userData;
-       if(user!=null) {
-         final imageUrl = user!['imageUrl'];
-         if (imageUrl != null) {
-           return ClipRRect(
-             borderRadius: BorderRadius.circular(100),
-             child: Image.network(
-                 imageUrl,
-                 fit: BoxFit.cover,
-                 height: 150,
-                 width: 150,
-                 errorBuilder: (context, error, stackTrace) =>
-                 const Icon(
-                   Icons.account_circle,
-                   size: 100,
-                   color: Colors.grey,
-                 ),
-                 loadingBuilder:
-                     (context, child, loadingProgress) {
-                   if (loadingProgress == null) {
-                     return child;
-                   }
-                   return SizedBox(
-                     width: 100,
-                     height: 100,
-                     child: Center(
-                       child: CircularProgressIndicator(
-                         color: Colors.grey,
-                         value: loadingProgress
-                             .expectedTotalBytes !=
-                             null
-                             ? loadingProgress
-                             .cumulativeBytesLoaded /
-                             loadingProgress
-                                 .expectedTotalBytes!
-                             : null,
-                       ),
-                     ),
-                   );
-                 }
-             ),
-           );
-         } else {
-           return Icon(
-             Icons.account_circle,
-             size: 100,
-             color: Colors.grey.shade500,
-           );
-         }
-       }else{
-         return CircularProgressIndicator();
-       }
-
+    } else {
+      final user =
+          Provider.of<UserDataProvider>(context, listen: false).userData;
+      if (user != null) {
+        final imageUrl = user['imageUrl'];
+        if (imageUrl != null) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(100),
+            child: Image.network(imageUrl,
+                fit: BoxFit.cover,
+                height: 150,
+                width: 150,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.account_circle,
+                      size: 100,
+                      color: Colors.grey,
+                    ),
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) {
+                    return child;
+                  }
+                  return SizedBox(
+                    width: 100,
+                    height: 100,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.grey,
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    ),
+                  );
+                }),
+          );
+        } else {
+          return Icon(
+            Icons.account_circle,
+            size: 100,
+            color: Colors.grey.shade500,
+          );
+        }
+      } else {
+        return const CircularProgressIndicator();
       }
-
+    }
   }
 
   @override
   void initState() {
-    // TODO: implement initState
     fetchData();
     super.initState();
   }

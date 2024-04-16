@@ -1,14 +1,16 @@
 import 'package:chat_app_flutter/constants/route_name.dart';
 import 'package:chat_app_flutter/models/user_data_model.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 import 'constants/colors.dart';
 import 'constants/routes.dart';
 import 'firebase_options.dart';
 
+var uuid = const Uuid();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -17,7 +19,9 @@ void main() async {
     );
     runApp(const MyApp());
   } catch (e) {
-    print('Error initializing Firebase: $e');
+    if (kDebugMode) {
+      print('Error initializing Firebase: $e');
+    }
   }
 }
 
@@ -29,7 +33,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => UserDataProvider(),),
+        ChangeNotifierProvider(
+          create: (context) => UserDataProvider(),
+        ),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
@@ -41,9 +47,8 @@ class MyApp extends StatelessWidget {
             color: Colors.black,
             foregroundColor: Colors.white,
             centerTitle: true,
-            titleTextStyle: TextStyle(
-                fontSize: 22,
-                color: AppColors.primaryTextTextColor),
+            titleTextStyle:
+                TextStyle(fontSize: 22, color: AppColors.primaryTextTextColor),
           ),
           textTheme: const TextTheme(
             displayLarge: TextStyle(

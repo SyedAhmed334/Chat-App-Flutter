@@ -8,26 +8,24 @@ import '../screens/signup_screen.dart';
 import '../screens/splash_screen.dart';
 import 'route_name.dart';
 
-
- class Routes {
-
+class Routes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     // final arguments = settings.arguments;
     switch (settings.name) {
       case RouteName.splashScreen:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
 
-       case RouteName.loginScreen:
-         return MaterialPageRoute(builder: (_) => const LoginScreen());
+      case RouteName.loginScreen:
+        return MaterialPageRoute(builder: (_) => const LoginScreen());
 
-       case RouteName.signUpScreen:
-         return MaterialPageRoute(builder: (_) => const SignUpScreen());
+      case RouteName.signUpScreen:
+        return MaterialPageRoute(builder: (_) => const SignUpScreen());
 
       case RouteName.dashBoardScreen:
-         return MaterialPageRoute(builder: (_) => const DashBoardScreen());
+        return MaterialPageRoute(builder: (_) => const DashBoardScreen());
 
       case RouteName.forgotPasswordScreen:
-         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
+        return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
 
       case RouteName.profileScreen:
         return MaterialPageRoute(builder: (_) => const ProfileScreen());

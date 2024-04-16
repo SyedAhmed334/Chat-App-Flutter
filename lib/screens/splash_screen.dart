@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/splash_services.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -14,14 +14,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     splashServices.isLogin(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
           child: Column(
@@ -33,14 +32,18 @@ class _SplashScreenState extends State<SplashScreen> {
             width: 220,
             height: 200,
             image: AssetImage(
-                'assets/images/chat.png',),
+              'assets/images/chat.png',
+            ),
           ),
-           Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Center(
                 child: Text(
               'Chat App',
-              style: TextStyle(fontSize: 40, fontWeight: FontWeight.w700,color: Colors.white),
+              style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white),
             )),
           )
         ],
