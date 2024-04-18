@@ -1,24 +1,27 @@
-import 'package:flutter/cupertino.dart';
+class UserModel {
+  final String username;
+  final String email;
+  final String imageUrl;
 
-class UserModel with ChangeNotifier {
-  List<Map<String, String>> _users = [];
-  List<Map<String, String>> _filteredUsers = [];
+  UserModel({
+    required this.username,
+    required this.email,
+    required this.imageUrl,
+  });
 
-  List<Map<String, String>> get filteredUsers => _filteredUsers;
-  List<Map<String, String>> get users => _users;
-
-  void getUsers(List<Map<String, String>> users) {
-    _users = users;
-    _filteredUsers = _users;
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      username: json['username'] ?? '',
+      email: json['email'] ?? '',
+      imageUrl: json['imageUrl'] ?? '',
+    );
   }
 
-  void filterUsers(String query) {
-    if (query.isEmpty) {
-      _filteredUsers = _users;
-    } else {
-      _filteredUsers = _users.where((user) =>
-          user['username']!.toLowerCase().contains(query.toLowerCase())).toList();
-    }
-    notifyListeners();
+  Map<String, dynamic> toJson() {
+    return {
+      'username': username,
+      'email': email,
+      'imageUrl': imageUrl,
+    };
   }
 }

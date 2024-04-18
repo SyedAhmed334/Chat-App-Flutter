@@ -1,8 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app_flutter/constants/route_name.dart';
-import 'package:chat_app_flutter/models/chatbox_model.dart';
-import 'package:chat_app_flutter/models/user_model.dart';
+import 'package:chat_app_flutter/controllers/chatbox_model.dart';
+import 'package:chat_app_flutter/controllers/user_controller.dart';
 import 'package:chat_app_flutter/screens/chat_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -75,9 +76,9 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.only(top: 0.0),
-        child: ChangeNotifierProvider<UserModel>(
-          create: (context) => UserModel(),
-          child: Consumer<UserModel>(
+        child: ChangeNotifierProvider<UserController>(
+          create: (context) => UserController(),
+          child: Consumer<UserController>(
             builder: (context, provider, child) => Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -125,7 +126,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12.0),
-                      child: Consumer<UserModel>(
+                      child: Consumer<UserController>(
                         builder: (context, provider, child) {
                           return StreamBuilder(
                             builder: (context, snapshot) {
@@ -161,94 +162,168 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                   itemCount: provider.filteredUsers.length,
                                   itemBuilder: (context, index) {
                                     final user = snapshot.data!.docs[index];
-                                    // final userData = user.data();
-                                    // final userId = user.id;
-                                  
+
                                     final username = provider
                                         .filteredUsers[index]['username'];
                                     final imageUrl =
                                         provider.filteredUsers[index]
                                             ['imageUrl'] as String;
 
-                                    return FutureBuilder(
-                                      future: ChatBoxModel().getChatBox(user),
-                                      builder: (context, snapshot) {
-                                        return ListTile(
-                                          onTap: () async {
-                                            final chatBox = await ChatBoxModel()
-                                                .getChatBox(user);
+                                    return FutureBuilder<
+                                            DocumentReference<
+                                                Map<String, dynamic>>?>(
+                                        future: ChatBoxModel().getChatBox(user),
+                                        builder: (context, chatBoxSnapshot) {
+                                          if (chatBoxSnapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            // Show loading indicator while fetching chat box
+                                            return const Center(
+                                                child:
+                                                    CircularProgressIndicator());
+                                          } else if (chatBoxSnapshot.hasError) {
+                                            // Handle error
+                                            return Text(
+                                                'Error: ${chatBoxSnapshot.error}');
+                                          } else {
+                                            final chatBoxRef =
+                                                chatBoxSnapshot.data;
+                                            if (chatBoxRef != null) {
+                                              return StreamBuilder<
+                                                  DocumentSnapshot<
+                                                      Map<String, dynamic>>>(
+                                                stream: chatBoxRef.snapshots(),
+                                                builder: (context,
+                                                    chatBoxDataSnapshot) {
+                                                  if (chatBoxDataSnapshot
+                                                          .connectionState ==
+                                                      ConnectionState.waiting) {
+                                                    // Show loading indicator while fetching chat box data
+                                                    return const Center(
+                                                        child:
+                                                            CircularProgressIndicator());
+                                                  } else if (chatBoxDataSnapshot
+                                                      .hasError) {
+                                                    // Handle error
+                                                    return Text(
+                                                        'Error: ${chatBoxDataSnapshot.error}');
+                                                  } else {
+                                                    // Get the data from the chat box document
+                                                    final chatBoxData =
+                                                        chatBoxDataSnapshot
+                                                            .data!
+                                                            .data();
+                                                    if (chatBoxData != null) {
+                                                      final lastMessage =
+                                                          chatBoxData[
+                                                                  'lastMessage']
+                                                              as String;
+                                                      final lastMessageTime =
+                                                          chatBoxData[
+                                                                  'lastMessageTime']
+                                                              as String;
+                                                      final lastMessageSenderId =
+                                                          chatBoxData[
+                                                                  'lastMessageSenderId'] ??
+                                                              '';
 
-                                            if (chatBox != null) {
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        ChatScreen(
-                                                      targetUser: user,
-                                                      imageUrl: imageUrl,
-                                                      username: username,
-                                                      currentUser:
-                                                          auth.currentUser,
-                                                      chatBox: chatBox,
-                                                    ),
-                                                  ));
-                                            }
-                                          },
-                                          leading: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(30),
-                                            child: Image.network(imageUrl,
-                                                fit: BoxFit.cover,
-                                                height: 50,
-                                                width: 50,
-                                                errorBuilder: (context, error,
-                                                        stackTrace) =>
-                                                    const Icon(
-                                                      Icons.account_circle,
-                                                      size: 60,
-                                                      color: Colors.grey,
-                                                    ),
-                                                loadingBuilder: (context, child,
-                                                    loadingProgress) {
-                                                  if (loadingProgress == null) {
-                                                    return child;
+                                                      return ListTile(
+                                                        onTap: () async {
+                                                          final chatBox =
+                                                              await ChatBoxModel()
+                                                                  .getChatBox(
+                                                                      user);
+
+                                                          if (chatBox != null) {
+                                                            Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          ChatScreen(
+                                                                    targetUser:
+                                                                        user,
+                                                                    imageUrl:
+                                                                        imageUrl,
+                                                                    username:
+                                                                        username,
+                                                                    currentUser:
+                                                                        auth.currentUser,
+                                                                    chatBox:
+                                                                        chatBox,
+                                                                  ),
+                                                                ));
+                                                          }
+                                                        },
+                                                        leading: ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(30),
+                                                          child:
+                                                              CachedNetworkImage(
+                                                                  key:
+                                                                      UniqueKey(),
+                                                                  imageUrl:
+                                                                      imageUrl,
+                                                                  fit: BoxFit
+                                                                      .cover,
+                                                                  height: 50,
+                                                                  width: 50,
+                                                                  errorWidget: (context,
+                                                                          error,
+                                                                          stackTrace) =>
+                                                                      const Icon(
+                                                                        Icons
+                                                                            .account_circle,
+                                                                        size:
+                                                                            60,
+                                                                        color: Colors
+                                                                            .grey,
+                                                                      ),
+                                                                  placeholder:
+                                                                      (context,
+                                                                          child) {
+                                                                    return const SizedBox(
+                                                                      width: 50,
+                                                                      height:
+                                                                          50,
+                                                                      child:
+                                                                          Center(
+                                                                        child:
+                                                                            CircularProgressIndicator(
+                                                                          color:
+                                                                              Colors.grey,
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  }),
+                                                        ),
+                                                        title: Text(
+                                                          username.toString(),
+                                                        ),
+                                                        subtitle: Text(lastMessage ==
+                                                                ""
+                                                            ? 'Say hi to your new friend!'
+                                                            : (lastMessageSenderId !=
+                                                                    auth.currentUser!
+                                                                        .uid)
+                                                                ? lastMessage
+                                                                : 'you: $lastMessage'),
+                                                        trailing: Text(
+                                                            lastMessageTime),
+                                                      );
+                                                    } else {
+                                                      return const Text(
+                                                          'Chat box data not found');
+                                                    }
                                                   }
-                                                  return SizedBox(
-                                                    width: 50,
-                                                    height: 50,
-                                                    child: Center(
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        color: Colors.grey,
-                                                        value: loadingProgress
-                                                                    .expectedTotalBytes !=
-                                                                null
-                                                            ? loadingProgress
-                                                                    .cumulativeBytesLoaded /
-                                                                loadingProgress
-                                                                    .expectedTotalBytes!
-                                                            : null,
-                                                      ),
-                                                    ),
-                                                  );
-                                                }),
-                                          ),
-                                          title: Text(
-                                            username.toString(),
-                                          ),
-                                          subtitle: Text(ChatBoxModel
-                                                      .lastMesage ==
-                                                  ""
-                                              ? 'Say hi to your new friend!'
-                                              : (user.id ==
-                                                      auth.currentUser!.uid)
-                                                  ? ChatBoxModel.lastMesage
-                                                  : 'you: ${ChatBoxModel.lastMesage}'),
-                                          trailing: Text(
-                                              ChatBoxModel.lastMessageTime),
-                                        );
-                                      },
-                                    );
+                                                },
+                                              );
+                                            } else {
+                                              return const Text(
+                                                  'Chat box not found');
+                                            }
+                                          }
+                                        });
                                   },
                                 );
                               }
@@ -263,7 +338,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       ),
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),

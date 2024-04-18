@@ -1,7 +1,7 @@
 import 'package:chat_app_flutter/components/input_textfield.dart';
 import 'package:chat_app_flutter/components/round_button.dart';
 import 'package:chat_app_flutter/constants/route_name.dart';
-import 'package:chat_app_flutter/models/login_model.dart';
+import 'package:chat_app_flutter/controllers/login_model.dart';
 import 'package:chat_app_flutter/utilities/toast_message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

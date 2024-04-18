@@ -1,5 +1,5 @@
 import 'package:chat_app_flutter/constants/route_name.dart';
-import 'package:chat_app_flutter/models/user_data_model.dart';
+import 'package:chat_app_flutter/controllers/user_data_model.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

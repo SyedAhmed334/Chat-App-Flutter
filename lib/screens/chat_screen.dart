@@ -1,12 +1,12 @@
 import 'dart:developer';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app_flutter/constants/colors.dart';
 import 'package:chat_app_flutter/constants/route_name.dart';
-import 'package:chat_app_flutter/main.dart';
+import 'package:chat_app_flutter/controllers/chatbox_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class ChatScreen extends StatefulWidget {
   final QueryDocumentSnapshot<Map<String, dynamic>> targetUser;
@@ -29,38 +29,6 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final messageController = TextEditingController();
-  void sendMessage() async {
-    String msg = messageController.text.trim();
-    messageController.clear();
-    var messageId = uuid.v1();
-    if (msg != '') {
-      FirebaseFirestore.instance
-          .collection('ChatMessages')
-          .doc(widget.chatBox!.id)
-          .collection('messages')
-          .doc(messageId)
-          .set({
-        'messageId': messageId,
-        'text': msg,
-        'sender': widget.currentUser!.uid,
-        'createdOn': DateTime.now(),
-        'messageTime': DateFormat('h:mm a').format(DateTime.now()),
-      });
-    }
-    widget.chatBox!.update({
-      'lastMessage': msg,
-      'lastMessageTime': DateFormat('h:mm a').format(DateTime.now())
-    });
-    DocumentSnapshot<Map<String, dynamic>> snapshot =
-        await widget.chatBox!.get();
-    Map<String, dynamic>? chatBoxData = snapshot.data();
-
-    FirebaseFirestore.instance
-        .collection('ChatMessages')
-        .doc(widget.chatBox!.id)
-        .set(chatBoxData!);
-    log("Message Sent!");
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,29 +52,23 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             ClipRRect(
               borderRadius: BorderRadius.circular(30),
-              child: Image.network(widget.imageUrl,
+              child: CachedNetworkImage(
+                  imageUrl: widget.imageUrl,
                   fit: BoxFit.cover,
                   height: 45,
                   width: 45,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
+                  errorWidget: (context, error, stackTrace) => const Icon(
                         Icons.account_circle,
                         size: 47,
                         color: Colors.grey,
                       ),
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) {
-                      return child;
-                    }
-                    return SizedBox(
+                  placeholder: (context, child) {
+                    return const SizedBox(
                       width: 45,
                       height: 45,
                       child: Center(
                         child: CircularProgressIndicator(
                           color: Colors.grey,
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
                         ),
                       ),
                     );
@@ -305,7 +267,10 @@ class _ChatScreenState extends State<ChatScreen> {
             icon: const Icon(Icons.send),
             onPressed: () {
               // Add functionality to send the message
-              sendMessage();
+
+              ChatBoxModel().sendMessage(messageController.text.trim(),
+                  widget.currentUser, widget.chatBox);
+              messageController.clear();
             },
           ),
         ],

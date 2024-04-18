@@ -1,5 +1,5 @@
 import 'package:chat_app_flutter/components/input_textfield.dart';
-import 'package:chat_app_flutter/models/forgot_password_model.dart';
+import 'package:chat_app_flutter/controllers/forgot_password_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
