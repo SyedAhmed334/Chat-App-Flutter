@@ -30,7 +30,7 @@ class SignUpModel with ChangeNotifier {
       }).then((value) {
         setLoading(false);
         Utils.toastMessage('User has been created!');
-        Navigator.pushNamed(context, RouteName.dashBoardScreen);
+        Navigator.pushReplacementNamed(context, RouteName.dashBoardScreen);
       }).onError((error, stackTrace) {
         Utils.toastMessage(error.toString());
       });

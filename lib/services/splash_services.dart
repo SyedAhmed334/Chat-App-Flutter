@@ -7,15 +7,16 @@ class SplashServices {
   void isLogin(BuildContext context) {
     FirebaseAuth auth = FirebaseAuth.instance;
     if (auth.currentUser == null) {
-       Future.delayed(
+      Future.delayed(
         const Duration(seconds: 3),
-            () => Navigator.pushNamed(context, RouteName.loginScreen),
+        () => Navigator.pushReplacementNamed(context, RouteName.loginScreen),
       );
     } else {
       // SessionController().userId = auth.currentUser!.uid;
       Future.delayed(
         const Duration(seconds: 3),
-            () => Navigator.pushNamed(context, RouteName.dashBoardScreen),
+        () =>
+            Navigator.pushReplacementNamed(context, RouteName.dashBoardScreen),
       );
     }
   }
